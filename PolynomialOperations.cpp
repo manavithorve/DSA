@@ -1,285 +1,166 @@
-#include<iostream>
+#include <iostream>
+#include<stdlib.h>
 using namespace std;
-/* Declarations for a polynomial node */
 
-struct pnode
+struct node
 {
-	int Exp;
-	int Coef;
-	struct pnode *next;
+             int coeff;
+             int expon;
+             struct node *link;
 };
+typedef struct node *NODE;
 
-
-/*
-————————————————————
-The show function
-Input : head node of the polynomial
-Output: none
-Calls :none.
-
-————————————————————
-*/
-void show(struct pnode *head)
+NODE getnode()
 {
-	struct pnode *Curr ;
+            NODE x;
+            x = new node;
+            return x;
+}
 
-	Curr=head;
-	if ( Curr == NULL )
-	{
-		cout<<"The polynomial is empty\n";
-		return ;
-	}
-	do
-	{
-		if ( Curr ->Exp != 0 )
-		{
-			cout<<Curr->Coef<<" "<<Curr->Exp;
-		}
-		else
-		{
-			cout<<Curr->Coef;
-			Curr = Curr -> next;
-			if ( Curr != head )
-			{
-				if ( Curr->Coef > 0)
-				{
-					cout<<" + ";
-				}
-			}
-		}
-	}while( Curr != head );
-	cout<<endl;
+NODE attach(int coeff, int expon, NODE head)
+{
+            NODE temp, cur;
+            temp = getnode();
+            temp->coeff = coeff;
+            temp->expon = expon;
+            cur = head->link;
+            while(cur->link != head)
+            {
+                        cur = cur->link;
+            }
+            cur->link = temp;
+            temp->link = head;
+            return head;
+}
+
+NODE  read_poly(NODE head)
+{
+            int i = 1, coeff, expon;
+            cout<<"\nEnter the coefficient as -999 to end the polynomial ";
+            while(1)
+            {
+                        cout<<"\nEnter the "<<i++<<" term:\n";
+                        cout<<"\n\tCoeff = ";
+                        cin>>coeff;
+                        if(coeff == -999)
+                                    break;
+                        cout<<"\n\tPow x = ";
+                        cin>>expon;
+                        head = attach(coeff, expon, head);
+            }
+              return head;
+}
+
+NODE poly_add(NODE head1, NODE head2, NODE head3)
+{
+            NODE a,b;
+            int coeff;
+            a = head1->link;
+            b = head2->link;
+            while(a != head1 && b != head2)
+            {
+                        if(a->expon == b->expon)
+                        {
+                                    coeff = a->coeff + b->coeff;
+                                    if(coeff != 0)
+                                                head3 = attach(coeff, a->expon, head3);
+                                    a = a->link;
+                                    b = b->link;
+                        }
+                        else if(a->expon > b->expon)
+                        {
+                                     head3 = attach(a->coeff, a->expon, head3);
+                                    a = a->link;
+                        }
+                        else
+                        {
+                                    head3 = attach(b->coeff, b->expon, head3);
+                                    b = b->link;
+                        }
+            }
+            while(a != head1)
+            {
+                        head3 = attach(a->coeff, a->expon, head3);
+                        a = a->link;
+            }
+            while(b != head2)
+            {
+                        head3 = attach(b->coeff, b->expon, head3);
+                        b = b->link;
+            }
+            return head3;
 }
 
 
-/*
-————————————————————
-The get function
-Input :none
-Output: The starting node of the polynomial
-Calls :none.
-
-———————————————————–
-*/
-pnode *get()
+NODE poly_mult(NODE head1, NODE head2, NODE head3)
 {
-/* Local declarations here */
-	struct pnode *temp, *New, *last;
-	int Exp, flag, Coef;
-
-	temp = NULL ;
-	flag = 1;
- /* flag to indicate whether a new node
-is created for the first time or not */
-
-	cout<<"\nEnter the polynomial in descending order of exponent: ";
-	cout<<"\nEnter -99 for exponent to terminate entry\n\n";
-	do
-	{
-		cout<<"\nEnter the Coefficient and Exponent of a term :";
-		cin>>Coef>>Exp;
-		if ( Exp == -99 ) 
-		{
-			break;
-		}
-
-		/* allocate new node */
-		New = new pnode;
-		New -> Coef = Coef; /* Set coef, exp & next field */
-		New -> Exp = Exp ;
-		New -> next = temp;
-		if (flag==1) /* Executed only for the first time */
-		{
-			temp = New;
-			last = temp;
-			flag = 0;
-		}
-		else
-		{ 
-			/* last keeps track of the most recently created node */
-			last ->next = New;
-			last = New;
-		}
-	}while(1);
-
-return temp;
+            NODE cur1, cur2;
+            if(head1->link == head1 || head2->link == head2)
+            {
+                        cout<<"\nMultiplied polynomial is zero polynomial";
+                        return 0;
+            }
+            cur1 = head1->link;
+            while(cur1 != head1)
+            {
+                        cur2 = head2->link;
+                        while(cur2!=head2)
+                        {
+                                    head3 =attach(cur1->coeff*cur2->coeff, cur1->expon+cur2->expon, head3);
+                                   cur2=cur2->link;
+                        }
+                        cur1=cur1->link;
+            }
+            return head3;
 }
 
-/*
-————————————————————
-The Attach function
-Input : multiplied coefficient value,
-addition of the exponts of the two polynomials,
-and a third node
-Output: returns the head node of attached node.
-Calls :none.
-Called by:mul function
-————————————————————
-*/
-
-pnode * Attach( int Exp, int Coef, struct pnode * third)
+void display(NODE head)
 {
-	pnode *New;
-	New = new pnode;
-	New->Exp = Exp;
-	New->Coef = Coef;
-	New->next = third;
-	third->next = New;
-	third = New;
-	return(third);
+            NODE temp;
+            if(head->link == head)
+            {
+                         cout<<"\nPolynomial does not exist";
+                         return;
+            }
+            temp = head->link;
+            while(temp != head)
+            {
+                         cout<<temp->coeff<<"x^"<<temp->expon;
+                         temp = temp->link;
+                         if(temp != head)
+                                    cout<<" + ";
+            }
 }
 
-/*
-————————————————————
-The mul function
-Input : head nodes of the first and second polynomials
-Output: returns the head node of the
-resultant polynomial
-Calls :Attach – to connect the to nodes.
-Called by:main
-————————————————————
-*/
-pnode* mul(struct pnode* First, struct pnode* Second)
-{
-	struct pnode *p1, *p2, *third, *dummy, *temp ;
-	int Exp, flag;
-	int Coef;
-	pnode *Attach(int,int,struct pnode*);
-	p1 = First;
-	third = new pnode;
-	third-> next =third;
-	dummy = third;
-	temp = dummy->next;
-	temp->next=temp;	
-	do
-	{
-		p2 = Second;	
-		do
-		{
-			Coef = p1->Coef * p2->Coef;
-			Exp = p1->Exp + p2 ->Exp;
-			temp = dummy->next;
-			flag = 0;
-			do
-			{
-				if ( temp -> Exp == Exp )
-				{
-					flag = 1;
-				}
-				else
-				{
-					temp = temp -> next;
-				}
-			}while ( temp!= dummy->next && !flag );
-			
-			if ( flag==1)
-			{
-				temp->Coef = temp ->Coef + Coef;
-			}			
-			else
-			{
-				third = Attach(Exp, Coef, third);
-				third->next=dummy->next;
-			}
-			p2 = p2 -> next;
-		}while ( p2 != Second);
-
-		p1 = p1 -> next;
-	}while ( p1 != First);
-
-	third ->next = dummy -> next;
-	third = dummy -> next;
-	delete(dummy);
-	return(third);
-}
-/*
-————————————————————
-The add function
-Input : head nodes of the first and second polynomials
-Output: returns the head node of the
-resultant polynomial
-Calls :Attach – to connect the to nodes.
-Called by:main
-————————————————————
-*/
-pnode* add(struct pnode* First, struct pnode* Second)
-{
-	struct pnode *p1, *p2, *third, *dummy ;
-	int Coef;
-	struct pnode *Attach(int,int,struct pnode *);
-	p1 = First;
-	p2 = Second;
-	third = new pnode;
-	third-> next =third;
-	dummy = third;
-	do
-	{
-		if( p1->Exp==p2->Exp)
-		{
-			Coef = p1->Coef + p2->Coef;
-			third = Attach(p1->Exp,Coef,third);
-			p1 = p1->next;
-			p2 = p2->next;
-		}
-		else if( p1->Exp < p2->Exp)
-		{
-			third =Attach(p2->Exp, p2->Coef, third);
-			p2 = p2 -> next ;
-		}
-		else if( p1->Exp > p2->Exp)
-		{
-			third =Attach(p1->Exp, p1->Coef,third);
-			p1 = p1 -> next ;
-		}
-
-	}while ( p1 != First || p2 != Second );
-	while ( p1 != First )
-	{
-		third = Attach(p1->Exp, p1->Coef, third);
-		p1 = p1 -> next;
-	}
-	while ( p2 != Second )	
-	{
-		third = Attach(p2->Exp, p2->Coef,third);
-		p2 = p2 -> next;
-	}
-	third ->next = dummy -> next;
-	third = dummy -> next;
-	delete(dummy);
-	return( third);
-}
-
-/*
-————————————————————
-The main function
-Input : None
-Output: None
-Parameter Passing Method : None
-Calls : get(), show() and mul()
-to read, print and Multiply the two polynomials.
-————————————————————
-*/
 
 int main()
 {
-	struct pnode *First, *Second, *ans;
-	cout<<"Reading details of the first polynomial\n\n";
-	First = get();
+            NODE head1, head2, head3,head4;
+            head1 = getnode();
+            head2 = getnode();
+            head3 = getnode();
+            head4 = getnode();
+            head1->link=head1;
+            head2->link=head2;
+            head3->link=head3;
+            head4->link=head4;
 
-	cout<<"Reading details of the Second polynomial\n\n";
-	Second = get();
+            cout<<"\nEnter the first polynomial \n";
+            head1 = read_poly(head1);
+            cout<<"\nEnter the second polynomial \n";
+            head2 = read_poly(head2);
 
-	cout<<"\nFirst Polynomial: ";
-	show(First);
-	cout<<"\nSecond Polynomial : ";
-	show(Second);
+            head3 = poly_add(head1, head2, head3);
 
-	ans = mul(First, Second);
-	cout<<"\nMultiplication of polynomial is: ";
-	show(ans);
-	ans = add(First, Second);
-	cout<<"\nAdditon of Polynomials is : ";
-	show(ans);
-	return 0;
+            head4=poly_mult(head1, head2, head4);
+
+            cout<<"\nPolynomial 1:\t";
+            display(head1);
+            cout<<"\nPolynomial 2:\t";
+            display(head2);
+            cout<<"\nPolynomial Addition Result:\t";
+            display(head3);
+            cout<<"\nPolynomial Multiplication Result:\t";
+            display(head4);
+            return 0;
 }
-
